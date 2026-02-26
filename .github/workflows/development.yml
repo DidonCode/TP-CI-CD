@@ -1,10 +1,10 @@
 name: Development
 
-on: 
+on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   ci:
@@ -18,13 +18,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'
+          cache: npm
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Install Netlify
-        run: npm install -g netlify-cli
+      - name: Install dependencies 
+        run: npm install 
+      
+      - name: Run linter
+        run: npm run lint
 
       - name: Run unit tests
         run: npm run test:unit
@@ -35,11 +35,31 @@ jobs:
       - name: Run coverage report
         run: npm run test:coverage
 
-      - name: Run linter
-        run: npm run lint
-
       - name: Build application
         run: npm run build
 
-      - name: Deploy on Netlify 
-        run: netlify deploy --auth $NETLIFY_TOKEN --site $NETLIFY_SITE_ID --dir dist --prod --yes
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+  cd:
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
+
+      - name: Deploy to Netlify
+        run: netlify deploy --auth "$NETLIFY_TOKEN" --site "$NETLIFY_SITE_ID" --dir dist --prod
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
