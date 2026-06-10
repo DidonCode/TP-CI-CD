@@ -1,9 +1,7 @@
-name: Development
+name: CI
 
 on:
   push:
-    branches: [main]
-  pull_request:
     branches: [main]
 
 jobs:
@@ -21,7 +19,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies 
-        run: npm install 
+        run: npm ci 
       
       - name: Run linter
         run: npm run lint
@@ -43,23 +41,3 @@ jobs:
         with:
           name: dist
           path: dist
-
-  cd:
-    needs: ci
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-
-      - name: Install Netlify CLI
-        run: npm install -g netlify-cli
-
-      - name: Deploy to Netlify
-        run: netlify deploy --auth "$NETLIFY_TOKEN" --site "$NETLIFY_SITE_ID" --dir dist --prod
-        env:
-          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
